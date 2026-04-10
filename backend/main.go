@@ -3,12 +3,17 @@ package main
 import (
 	"fmt"
 	"net/http"
-
+	"github.com/joho/godotenv"
+	
 	"github.com/go-chi/cors"
 	"github.com/go-chi/chi/v5"
 )
 
 func main() {
+	err := godotenv.Load()
+if err != nil {
+	fmt.Println("No .env file found")
+}
 	InitDB()
 	SeedProducts()
 
@@ -20,7 +25,7 @@ func main() {
 		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 	}))
-
+	r.Post("/checkout", CreateCheckoutSession)
 	
 	r.Get("/products", GetProducts)
 	r.Post("/products", CreateProduct)

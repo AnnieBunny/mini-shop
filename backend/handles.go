@@ -3,6 +3,12 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"os"
+	"fmt"
+
+	"github.com/stripe/stripe-go/v74"
+	"github.com/stripe/stripe-go/v74/checkout/session"
 )
 
 func GetProducts(w http.ResponseWriter, r *http.Request) {
@@ -60,4 +66,44 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(p)
+}
+
+func CreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
+	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
+
+	w.Header().Set("Content-Type", "application/json")
+// json.NewEncoder(w).Encode(map[string]string{
+// 	"url": s.URL,
+// })
+	params := &stripe.CheckoutSessionParams{
+		PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
+		Mode:               stripe.String(string(stripe.CheckoutSessionModePayment)),
+
+		LineItems: []*stripe.CheckoutSessionLineItemParams{
+			{
+				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+					Currency: stripe.String(string(stripe.CurrencyUSD)),
+					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+						Name: stripe.String("Test Product"),
+					},
+					UnitAmount: stripe.Int64(2000), 
+				},
+				Quantity: stripe.Int64(1),
+			},
+		},
+
+		SuccessURL: stripe.String("http://localhost:3000/success"),
+		CancelURL:  stripe.String("http://localhost:3000/cancel"),
+	}
+
+	s, err := session.New(params)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"url": s.URL,
+	})
+	fmt.Println("Stripe key:", os.Getenv("STRIPE_SECRET_KEY"))
 }
