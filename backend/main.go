@@ -1,6 +1,7 @@
 package main
 
 import (
+	// "os"
 	"fmt"
 	"net/http"
 	"github.com/joho/godotenv"
@@ -27,10 +28,12 @@ func main() {
 	}))
 
 	r.Post("/checkout", CreateCheckoutSession)
+	r.Post("/webhook", HandleWebhook)
 	r.With(AuthMiddleware).Get("/products", GetProducts)
 	r.With(AuthMiddleware).Post("/products", CreateProduct)
 	r.Post("/register", RegisterHandler)
 	r.Post("/login", LoginHandler)
+
 
 	fmt.Println("Server running on :8080")
 	http.ListenAndServe(":8080", r)

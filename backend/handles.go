@@ -3,59 +3,51 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-
 	"os"
-	// "fmt"
-
+	"fmt"
+	"io"
+	"strconv"
+	"github.com/stripe/stripe-go/v74/webhook"
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/checkout/session"
 )
 
 func GetProducts(w http.ResponseWriter, r *http.Request) {
+	rows, err := DB.Query("SELECT id, name, price FROM products")
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	defer rows.Close()
 
-    rows, err := DB.Query("SELECT id, name, price FROM products")
-    if err != nil {
-        http.Error(w, err.Error(), 500)
-        return
-    }
-    defer rows.Close()
+	var products []Product
+	for rows.Next() {
+		var p Product
+		if err := rows.Scan(&p.ID, &p.Name, &p.Price); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		products = append(products, p)
+	}
 
-    var products []Product
+	if err := rows.Err(); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
 
-    
-    for rows.Next() {
-        var p Product
-        if err := rows.Scan(&p.ID, &p.Name, &p.Price); err != nil {
-            http.Error(w, err.Error(), 500) 
-            return
-        }
-        products = append(products, p)
-    }
-
-    if err := rows.Err(); err != nil {
-        http.Error(w, err.Error(), 500)
-        return
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusOK) // 200 OK
-    json.NewEncoder(w).Encode(products)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(products)
 }
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	var p Product
-
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		http.Error(w, "Invalid JSON", 400)
 		return
 	}
 
-	result, err := DB.Exec(
-		"INSERT INTO products (name, price) VALUES (?, ?)",
-		p.Name,
-		p.Price,
-	)
+	result, err := DB.Exec("INSERT INTO products (name, price) VALUES (?, ?)", p.Name, p.Price)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -77,22 +69,21 @@ func CreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
 		Items []CheckoutItem `json:"items"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", 400)
 		return
 	}
 
-
-
 	var lineItems []*stripe.CheckoutSessionLineItemParams
-	
+	total := 0
 
 	for _, item := range req.Items {
-			qty := item.Quantity
-if qty < 1 {
-	qty = 1
-}
+		qty := item.Quantity
+		if qty < 1 {
+			qty = 1
+		}
+		total += item.Price * qty
+
 		lineItems = append(lineItems, &stripe.CheckoutSessionLineItemParams{
 			PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
 				Currency: stripe.String("usd"),
@@ -112,6 +103,12 @@ if qty < 1 {
 		SuccessURL: stripe.String("http://localhost:3000/success"),
 		CancelURL: stripe.String("http://localhost:3000/cancel"),
 	}
+	params.AddMetadata("total", fmt.Sprintf("%d", total))
+	params.PaymentIntentData = &stripe.CheckoutSessionPaymentIntentDataParams{
+		Metadata: map[string]string{
+			"source": "mini-shop",
+		},
+	}
 
 	s, err := session.New(params)
 	if err != nil {
@@ -119,7 +116,78 @@ if qty < 1 {
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{
-		"url": s.URL,
-	})
+	json.NewEncoder(w).Encode(map[string]string{"url": s.URL})
+}
+
+
+
+
+
+
+func HandleWebhook(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Cannot read body", http.StatusBadRequest)
+		return
+	}
+
+	event, err := webhook.ConstructEventWithOptions(
+		body,
+		r.Header.Get("Stripe-Signature"),
+		os.Getenv("STRIPE_WEBHOOK_SECRET"),
+		webhook.ConstructEventOptions{
+			IgnoreAPIVersionMismatch: true,
+		},
+	)
+	if err != nil {
+		fmt.Println("Invalid signature or event:", err)
+		http.Error(w, "Invalid signature", http.StatusBadRequest)
+		return
+	}
+	fmt.Println("EVENT-TYPE",event.Type)
+
+
+
+	switch event.Type {
+	case "checkout.session.completed":
+		var session stripe.CheckoutSession
+		if err := json.Unmarshal(event.Data.Raw, &session); err != nil {
+			http.Error(w, "Failed to parse event", http.StatusBadRequest)
+			return
+		}
+
+		total := 0
+		if totalStr, ok := session.Metadata["total"]; ok {
+			total, _ = strconv.Atoi(totalStr)
+		}
+		userID := 0
+		if userStr, ok := session.Metadata["user_id"]; ok {
+			userID, _ = strconv.Atoi(userStr)
+		}
+
+		paymentIntentID := ""
+		if session.PaymentIntent != nil {
+			paymentIntentID = session.PaymentIntent.ID
+		}
+
+		_, err := DB.Exec(`
+			INSERT INTO orders (user_id, amount, status, stripe_payment_intent_id)
+			VALUES (?, ?, ?, ?)`,
+			userID,
+			total,
+			"paid",
+			paymentIntentID,
+		)
+		if err != nil {
+			fmt.Println("DB error:", err)
+		} else {
+			fmt.Println("Order saved successfully!")
+		}
+
+	default:
+	
+		fmt.Println("Unhandled event type:", event.Type)
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
