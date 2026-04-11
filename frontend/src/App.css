@@ -1,6 +1,6 @@
 .Card:hover {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); 
-  transform: translateY(-5px); 
+  
  }
 
  .btn.btn-primary {
@@ -20,7 +20,7 @@
 .btn.btn-primary:hover {
   background-color: #45a049;  
   cursor: pointer; 
-  transform: scale(1.05);  
+ 
 }
 
 
@@ -44,6 +44,3 @@ body {
     transition: transform 0.3s ease;
 }
 
-.card:hover {
-    transform: scale(1.05);
-}
