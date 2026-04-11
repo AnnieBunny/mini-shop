@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import { Button, Badge, Container, Navbar, Nav, Accordion } from 'react-bootstrap';
 import { BsCart } from "react-icons/bs";
-import * as headerService from '../../src/services/headerService';
+import * as headerService from "../../src/services/headerService";
 
 const Header = ({ cart, setCart, setExpanded }) => {
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -18,8 +18,8 @@ const Header = ({ cart, setCart, setExpanded }) => {
     };
 
 
-    const handlePayment = () => {
-        headerService.createCheckoutSession()
+    const handlePayment = (cart) => {
+        headerService.createCheckoutSession(cart)
           
 
     };
@@ -66,7 +66,7 @@ const Header = ({ cart, setCart, setExpanded }) => {
                                 ))
                             )}
                             {cart.length > 0 && (
-                                <Button variant="success" onClick={handlePayment} className="mt-3 w-100">
+                                <Button variant="success" onClick={() => handlePayment(cart)} className="mt-3 w-100">
                                     Pay Now
                                 </Button>
                             )}

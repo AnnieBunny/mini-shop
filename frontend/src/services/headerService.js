@@ -34,12 +34,15 @@
 
 // };
 
-export const createCheckoutSession = async () => {
+export const createCheckoutSession = async (cart) => {
   const res = await fetch("http://localhost:8080/checkout", {
-    method: "POST"
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ items: cart })
   });
 
   const data = await res.json();
-
   window.location.href = data.url;
 };

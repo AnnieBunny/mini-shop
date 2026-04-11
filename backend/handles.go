@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"os"
-	"fmt"
+	// "fmt"
 
 	"github.com/stripe/stripe-go/v74"
 	"github.com/stripe/stripe-go/v74/checkout/session"
@@ -73,25 +73,44 @@ func CreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
+	var req struct {
+		Items []CheckoutItem `json:"items"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Invalid request", 400)
+		return
+	}
+
+
+
+	var lineItems []*stripe.CheckoutSessionLineItemParams
+	
+
+	for _, item := range req.Items {
+			qty := item.Quantity
+if qty < 1 {
+	qty = 1
+}
+		lineItems = append(lineItems, &stripe.CheckoutSessionLineItemParams{
+			PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+				Currency: stripe.String("usd"),
+				ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+					Name: stripe.String(item.Name),
+				},
+				UnitAmount: stripe.Int64(int64(item.Price * 100)),
+			},
+			Quantity: stripe.Int64(int64(qty)),
+		})
+	}
+
 	params := &stripe.CheckoutSessionParams{
 		PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
-		Mode:               stripe.String(string(stripe.CheckoutSessionModePayment)),
-
-		LineItems: []*stripe.CheckoutSessionLineItemParams{
-			{
-				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
-					Currency: stripe.String(string(stripe.CurrencyUSD)),
-					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-						Name: stripe.String("Test Product"),
-					},
-					UnitAmount: stripe.Int64(2000), 
-				},
-				Quantity: stripe.Int64(1),
-			},
-		},
-
+		Mode: stripe.String(string(stripe.CheckoutSessionModePayment)),
+		LineItems: lineItems,
 		SuccessURL: stripe.String("http://localhost:3000/success"),
-		CancelURL:  stripe.String("http://localhost:3000/cancel"),
+		CancelURL: stripe.String("http://localhost:3000/cancel"),
 	}
 
 	s, err := session.New(params)
@@ -103,5 +122,4 @@ func CreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"url": s.URL,
 	})
-	fmt.Println("Stripe key:", os.Getenv("STRIPE_SECRET_KEY"))
 }
