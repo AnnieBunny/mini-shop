@@ -27,10 +27,11 @@ func main() {
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 	}))
 
-	r.Post("/checkout", CreateCheckoutSession)
+	r.With(AuthMiddleware).Post("/checkout", CreateCheckoutSession)
 	r.Post("/webhook", HandleWebhook)
 	r.With(AuthMiddleware).Get("/products", GetProducts)
 	r.With(AuthMiddleware).Post("/products", CreateProduct)
+	r.With(AuthMiddleware).Get("/orders", GetUserOrders)
 	r.Post("/register", RegisterHandler)
 	r.Post("/login", LoginHandler)
 

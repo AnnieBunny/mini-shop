@@ -68,7 +68,11 @@ func CreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Items []CheckoutItem `json:"items"`
 	}
-
+userID := 0
+if uid := r.Context().Value("userID"); uid != nil {
+    userID, _ = strconv.Atoi(uid.(string))
+}
+fmt.Println("Checkout userID:", userID)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request", 400)
 		return
@@ -103,6 +107,7 @@ func CreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
 		SuccessURL: stripe.String("http://localhost:3000/success"),
 		CancelURL: stripe.String("http://localhost:3000/cancel"),
 	}
+	params.AddMetadata("user_id", fmt.Sprintf("%d", userID))
 	params.AddMetadata("total", fmt.Sprintf("%d", total))
 	params.PaymentIntentData = &stripe.CheckoutSessionPaymentIntentDataParams{
 		Metadata: map[string]string{
@@ -169,7 +174,6 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 		if session.PaymentIntent != nil {
 			paymentIntentID = session.PaymentIntent.ID
 		}
-
 		_, err := DB.Exec(`
 			INSERT INTO orders (user_id, amount, status, stripe_payment_intent_id)
 			VALUES (?, ?, ?, ?)`,
@@ -190,4 +194,49 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func GetUserOrders(w http.ResponseWriter, r *http.Request) {
+    userIDStr := r.Context().Value("userID")
+    if userIDStr == nil {
+        http.Error(w, "User not authenticated", http.StatusUnauthorized)
+        return
+    }
+
+    userID, err := strconv.Atoi(userIDStr.(string))
+    if err != nil {
+        http.Error(w, "Invalid user ID", http.StatusBadRequest)
+        return
+    }
+
+    
+    rows, err := DB.Query("SELECT id, amount, status, stripe_payment_intent_id FROM orders WHERE user_id = ?", userID)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    type Order struct {
+        ID                  int    `json:"id"`
+        Amount              int    `json:"amount"`
+        Status              string `json:"status"`
+        StripePaymentIntent string `json:"stripe_payment_intent_id"`
+    }
+
+    var orders []Order
+    for rows.Next() {
+        var o Order
+        if err := rows.Scan(&o.ID, &o.Amount, &o.Status, &o.StripePaymentIntent); err != nil {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+        orders = append(orders, o)
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(orders)
+
+fmt.Println(" orders for user:", orders)
+
 }
