@@ -1,25 +1,28 @@
+export const getProducts = (token) => {
+  return fetch("http://localhost:8080/products", {
+    headers: {
+      Authorization: token,
+      "Content-Type": "application/json"
+    },
+  }).then(async (res) => {
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text);
+    }
+    return res.json();
+  });
+};
 
-export function getProducts() {
-  return fetch("http://localhost:8080/products")
-    .then(res => res.json())  
-    .then(data => {
-      console.log(data); 
-      return data;  
-    })
-    .catch(error => {
-      console.error("Error fetching products:", error);
-      return [];  
-    });
-}
-
-export function addNewProduct(name, price) {
+export function addNewProduct(name, price,token) {
     let product = {
      name,
      price
     }
     return fetch("http://localhost:8080/products", {
         method: "POST",
+        
         headers: {
+            "Authorization": token,
             "Content-Type": "application/json"
         },
         body: JSON.stringify(product)

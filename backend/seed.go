@@ -14,3 +14,15 @@ func SeedProducts() {
 		log.Println(err)
 	}
 }
+
+func SeedUsers() {
+	query := `
+	INSERT OR IGNORE INTO users (email, password)
+	VALUES ('test@test.com', '1234');
+	`
+
+	_, err := DB.Exec(query)
+	if err != nil {
+		log.Println("Error seeding users:", err)
+	}
+}

@@ -1,25 +1,40 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect,useContext } from "react";
 import '../App.css';
 import { Card, Button, Row, Col, Container, Accordion, Form } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import * as homeService from '../../src/services/homeService';
 import Header from './Header';
+import { AuthContext } from "../contexts/AuthContext";
 
 function Home() {
+        const { token, logout } = useContext(AuthContext);
+    
     const [products, setProducts] = useState([{ name: '', price: 0 }]);
     const [productName, setProductName] = useState('');
     const [productPrice, setProductPrice] = useState(0);
     const [expanded, setExpanded] = useState(false);
     const [cart, setCart] = useState([]);  
 
-    useEffect(() => {
-        getProducts();
-    }, []);  
+  useEffect(() => {
+ if (token) {
+    homeService.getProducts(token)
+      .then(data => {
+        const validProducts = data.filter(p => p.name && p.price > 0);
+        setProducts(validProducts);
+      })
+      .catch(err => {
+        console.error("Error fetching products:", err);
+        if (err.message === "Missing token" || err.message === "Invalid token") {
+          logout(); // премахва token и redirect към login
+        }
+      });
+  }
+}, [token,logout]); 
 
  
     function getProducts() {
-        homeService.getProducts().then((data) => {
+        homeService.getProducts(token).then((data) => {
             console.log(data); 
             const validProducts = data.filter((product) => product.name && product.price > 0);
             setProducts(validProducts);
@@ -35,7 +50,7 @@ function Home() {
             return;
         }
 
-        homeService.addNewProduct(productName, Number(productPrice))
+        homeService.addNewProduct(productName, Number(productPrice),token)
             .then(() => {
               
                 setProductName('');

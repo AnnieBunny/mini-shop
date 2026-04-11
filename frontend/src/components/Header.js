@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 import { Button, Badge, Container, Navbar, Nav, Accordion } from 'react-bootstrap';
 import { BsCart } from "react-icons/bs";
 import * as headerService from "../../src/services/headerService";
+import { AuthContext } from "../contexts/AuthContext";
 
 const Header = ({ cart, setCart, setExpanded }) => {
     const [isCartOpen, setIsCartOpen] = useState(false);
-
-
+    const { token, logout,user } = useContext(AuthContext);
+// const { username } = useContext(AuthContext);
     const handleAddToCart = (product) => {
         setCart((prevCart) => [...prevCart, product]);
     };
@@ -20,7 +21,7 @@ const Header = ({ cart, setCart, setExpanded }) => {
 
     const handlePayment = (cart) => {
         headerService.createCheckoutSession(cart)
-          
+
 
     };
 
@@ -37,6 +38,15 @@ const Header = ({ cart, setCart, setExpanded }) => {
                         <BsCart size={30} />
                         <Badge bg="danger">{cart.length}</Badge>
                     </Button>
+                    <span style={{color:'white', marginLeft:'5px',paddingTop:'10px', paddingBottom:'10px'}}>Hello, {user}</span>
+                    {token ? (
+                        <>
+                            
+                            <Button style={{color:'black', background:'white', marginLeft:'5px'}} onClick={logout}>Logout</Button>
+                        </>
+                    ) : (
+                        <></>
+                    )}
                 </Nav>
             </Container>
 
