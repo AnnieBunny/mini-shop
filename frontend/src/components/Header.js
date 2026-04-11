@@ -1,24 +1,27 @@
 import React, { useState } from "react";
+
 import { Button, Badge, Container, Navbar, Nav, Accordion } from 'react-bootstrap';
 import { BsCart } from "react-icons/bs";
+import * as headerService from '../../src/services/headerService';
 
 const Header = ({ cart, setCart, setExpanded }) => {
     const [isCartOpen, setIsCartOpen] = useState(false);
 
- 
+
     const handleAddToCart = (product) => {
         setCart((prevCart) => [...prevCart, product]);
     };
 
-   
+
     const handleRemoveFromCart = (productToRemove) => {
         setCart((prevCart) => prevCart.filter(product => product.id !== productToRemove.id));
     };
 
- 
+
     const handlePayment = () => {
-        alert("Processing payment...");
-        setCart([]); 
+        headerService.createCheckoutSession()
+          
+
     };
 
     return (
@@ -38,8 +41,8 @@ const Header = ({ cart, setCart, setExpanded }) => {
             </Container>
 
             {isCartOpen && (
-                        
-                <Accordion   defaultActiveKey="0" className="mt-3" style={{
+
+                <Accordion defaultActiveKey="0" className="mt-3" style={{
                     position: 'fixed', top: '44px', right: '0px', width: '250px', zIndex: 9999
                 }}>
                     <Accordion.Item eventKey="0">

@@ -72,9 +72,7 @@ func CreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
 	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
 	w.Header().Set("Content-Type", "application/json")
-// json.NewEncoder(w).Encode(map[string]string{
-// 	"url": s.URL,
-// })
+
 	params := &stripe.CheckoutSessionParams{
 		PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
 		Mode:               stripe.String(string(stripe.CheckoutSessionModePayment)),
