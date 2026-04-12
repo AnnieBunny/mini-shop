@@ -99,13 +99,15 @@ fmt.Println("Checkout userID:", userID)
 			Quantity: stripe.Int64(int64(qty)),
 		})
 	}
+	successURL := os.Getenv("REACT_APP_API_URL") + "/success"
+	cancelURL := os.Getenv("REACT_APP_API_URL") + "/cancel"
 
 	params := &stripe.CheckoutSessionParams{
 		PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
 		Mode: stripe.String(string(stripe.CheckoutSessionModePayment)),
 		LineItems: lineItems,
-		SuccessURL: stripe.String("http://localhost:3000/success"),
-		CancelURL: stripe.String("http://localhost:3000/cancel"),
+		SuccessURL: stripe.String(successURL),
+		CancelURL: stripe.String(cancelURL),
 	}
 	params.AddMetadata("user_id", fmt.Sprintf("%d", userID))
 	params.AddMetadata("total", fmt.Sprintf("%d", total))
