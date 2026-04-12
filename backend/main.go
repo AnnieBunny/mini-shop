@@ -1,9 +1,10 @@
 package main
 
 import (
-	// "os"
 	"fmt"
 	"net/http"
+	"os"
+
 	"github.com/joho/godotenv"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/chi/v5"
@@ -12,13 +13,11 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-	fmt.Println("No .env file found")
+		fmt.Println("No .env file found")
 	}
 
 	InitDB()
-	SeedProducts()
-	SeedUsers() 
-	
+
 	r := chi.NewRouter()
 
 	r.Use(cors.Handler(cors.Options{
@@ -32,10 +31,15 @@ func main() {
 	r.With(AuthMiddleware).Get("/products", GetProducts)
 	r.With(AuthMiddleware).Post("/products", CreateProduct)
 	r.With(AuthMiddleware).Get("/orders", GetUserOrders)
+
 	r.Post("/register", RegisterHandler)
 	r.Post("/login", LoginHandler)
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
-	fmt.Println("Server running on :8080")
-	http.ListenAndServe(":8080", r)
+	fmt.Println("Server running on :" + port)
+	http.ListenAndServe(":"+port, r)
 }
