@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import { useState, useContext } from "react";
 
 import { Button, Badge, Container, Navbar, Nav, Accordion } from 'react-bootstrap';
 import { BsCart } from "react-icons/bs";
@@ -6,7 +6,7 @@ import * as headerService from "../../src/services/headerService";
 import { AuthContext } from "../contexts/AuthContext";
 import MyOrdersModal from "./MyOrdersModal";
 
-const Header = ({ cart, setCart, setExpanded }) => {
+const Header = ({ cart, setCart }) => {
     const [orders, setOrders] = useState([]);
 
 

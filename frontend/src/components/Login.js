@@ -2,10 +2,13 @@ import { useState, useContext } from "react";
 import { AuthContext } from "../../src/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Form, Button, Card } from "react-bootstrap";
+
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 function Login() {
+const API_URL = process.env.REACT_APP_API_URL;
+
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +20,7 @@ function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8080/login", {
+      const res = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -27,7 +30,7 @@ function Login() {
         const data = await res.json();
         login(data.token, data.email);
         toast.success("Login successful!");
-        navigate("/"); // пренасочване към home
+        navigate("/");
       } else {
         const text = await res.text();
         toast.error("Login failed: " + text);

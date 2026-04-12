@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 function Register() {
+const API_URL = process.env.REACT_APP_API_URL;
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,14 +18,14 @@ function Register() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8080/register", {
+      const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       if (res.ok) {
-        const loginRes = await fetch("http://localhost:8080/login", {
+        const loginRes = await fetch(`${API_URL}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
@@ -34,7 +35,7 @@ function Register() {
           const data = await loginRes.json();
           login(data.token, data.email);
           toast.success("Registration successful!");
-          navigate("/"); // пренасочване към home след login
+          navigate("/"); 
         } else {
           const text = await loginRes.text();
           toast.error(`Login after registration failed: ${text}`);

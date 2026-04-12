@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { useContext } from "react";
 import { AuthContext } from "../src/contexts/AuthContext";
@@ -9,7 +9,7 @@ import SuccessPaymentPage from './components/SuccessPaymentPage';
 import CancelPaymentPage from './components/CancelPaymentPage';
 
 function App() {
-  const { token, logout } = useContext(AuthContext);
+  const { token} = useContext(AuthContext);
 
   return (
     <Router>
