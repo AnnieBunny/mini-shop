@@ -34,9 +34,9 @@ const Header = ({ cart, setCart }) => {
     };
 
 
-    const handleRemoveFromCart = (productToRemove) => {
-        setCart((prevCart) => prevCart.filter(product => product.id !== productToRemove.id));
-    };
+ const handleRemoveFromCart = (indexToRemove) => {
+  setCart((prevCart) => prevCart.filter((_, index) => index !== indexToRemove));
+};
 
 
     const handlePayment = (cart) => {
@@ -92,7 +92,7 @@ const Header = ({ cart, setCart }) => {
                                             <Button
                                                 variant="danger"
                                                 size="sm"
-                                                onClick={() => handleRemoveFromCart(product)}
+                                               onClick={() => handleRemoveFromCart(index)}
                                             >
                                                 Remove
                                             </Button>
