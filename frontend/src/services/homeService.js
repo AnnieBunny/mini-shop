@@ -1,5 +1,7 @@
+const API_URL = process.env.REACT_APP_API_URL;
+
 export const getProducts = (token) => {
-  return fetch("http://localhost:8080/products", {
+  return fetch(`${API_URL}/products`, {
     headers: {
       Authorization: token,
       "Content-Type": "application/json"
@@ -18,7 +20,7 @@ export function addNewProduct(name, price,token) {
      name,
      price
     }
-    return fetch("http://localhost:8080/products", {
+    return fetch(`${API_URL}/products`, {
         method: "POST",
         
         headers: {

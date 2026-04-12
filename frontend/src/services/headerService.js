@@ -1,41 +1,7 @@
-
-
-// export function createCheckoutSession() {
-    
-//     return fetch("http://localhost:8080/checkout", {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/json"
-//         },
-//         // body: JSON.stringify(product)
-//     })
-//      .then(res => {
-//         if (!res.ok) {
-//             throw new Error('Failed to insert product');
-//         }
-//         return res.json();
-//     })
-//     .then(data => {
-//          return data;
-//     })
-//     .catch(err => {
-//         console.error("Error:", err);
-//     });
-//         // .then(res => res.json())
-//         // .catch(err => console.log(err))
-// }
-
-// export function createCheckoutSession() {
-//   return  fetch("http://localhost:8080/checkout", {
-//     method: "POST",
-//   }).then(data => {
-//       window.location.href = data.url;
-//     })
-
-// };
+const API_URL = process.env.REACT_APP_API_URL;
 
 export const createCheckoutSession = async (cart,token) => {
-  const res = await fetch("http://localhost:8080/checkout", {
+  const res = await fetch(`${API_URL}/checkout`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -49,7 +15,7 @@ export const createCheckoutSession = async (cart,token) => {
 };
 
 export const getUserOrders = async (token) => {
-  const res = await fetch("http://localhost:8080/orders", {
+  const res = await fetch(`${API_URL}/orders`, {
     headers: {
       "Authorization": token,
       "Content-Type": "application/json"
