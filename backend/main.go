@@ -17,6 +17,8 @@ func main() {
 	}
 
 	InitDB()
+	SeedUsers()
+    SeedProducts()
 
 	r := chi.NewRouter()
 
