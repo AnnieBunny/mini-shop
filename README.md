@@ -17,6 +17,7 @@ The project demonstrates real-world full-stack development including authenticat
 ### Frontend
 - React
 - React Bootstrap
+- React Toastify
 - React Router
 - Fetch API (services layer)
 
@@ -32,19 +33,22 @@ The project demonstrates real-world full-stack development including authenticat
 ---
 
 ## Architecture
-
+```text
 frontend (React)
    ↓ HTTP requests
 backend (Go API)
    ↓
-SQLite database
-   ↓
-Stripe (payments + webhook events)
+SQLite database (users, products, orders)
 
+Stripe (external payment provider)
+   ↓ webhook events
+backend (updates database after payment)
+```
 ---
 
 ## Project Structure
 
+```text
 MINI-SHOP/
 ├── backend/
 │   ├── auth.go
@@ -62,6 +66,24 @@ MINI-SHOP/
 │   └── index.js
 │
 └── README.md
+---
+```
+## API Endpoints
+
+### Authentication
+- `POST /register` – create a new user
+- `POST /login` – authenticate user and receive JWT
+
+### Products
+- `GET /products` – list all products
+- `POST /products` – add a new product (authenticated)
+
+### Orders
+- `GET /orders` – list orders for current user
+- `POST /checkout` – create Stripe checkout session
+
+### Webhooks
+- `POST /webhook` – Stripe webhook to record successful payments
 
 ---
 
@@ -70,26 +92,26 @@ MINI-SHOP/
 ### Backend
 
 Create `.env` file inside backend folder:
-
+```text
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-
+```
 Run backend:
-
+```text
 cd backend
 go run .
-
+```
 Backend runs on:
 http://localhost:8080
 
 ---
 
 ### Frontend
-
+```text
 cd frontend
 npm install
 npm start
-
+```
 Frontend runs on:
 http://localhost:3000
 
@@ -107,13 +129,13 @@ http://localhost:3000
 ## Stripe Local Testing (Webhook)
 
 Run Stripe CLI:
-
+```text
 stripe listen --forward-to localhost:8080/webhook
-
+```
 Copy webhook secret and add to .env:
-
+```text
 STRIPE_WEBHOOK_SECRET=whsec_xxxxx
-
+```
 ---
 
 ## Stripe Flow
