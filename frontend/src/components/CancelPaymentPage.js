@@ -1,6 +1,8 @@
+import { useNavigate } from "react-router-dom";
 
 
 function CancelPaymentPage() {
+  const navigate = useNavigate();
   return (
     <div style={styles.page}>
       <div style={styles.card}>
@@ -12,7 +14,7 @@ function CancelPaymentPage() {
           Your payment was not completed. You can try again or return to the shop.
         </p>
 
-        <button style={styles.button} onClick={() => window.location.href = "/"}>
+        <button style={styles.button} onClick={() => navigate("/cancel")}>
           Back to Shop
         </button>
       </div>

@@ -1,5 +1,7 @@
+import { useNavigate } from "react-router-dom";
 
 function SuccessPaymentPage() {
+  const navigate = useNavigate();
   return (
     <div style={styles.page}>
       <div style={styles.card}>
@@ -11,7 +13,7 @@ function SuccessPaymentPage() {
           Thank you for your order. Your payment has been processed successfully.
         </p>
 
-        <button style={styles.button} onClick={() => window.location.href = "/"}>
+        <button style={styles.button} onClick={() => navigate("/success")}>
           Back to Shop
         </button>
       </div>
