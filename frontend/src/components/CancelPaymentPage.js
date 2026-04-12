@@ -14,7 +14,7 @@ function CancelPaymentPage() {
           Your payment was not completed. You can try again or return to the shop.
         </p>
 
-        <button style={styles.button} onClick={() => navigate("/cancel")}>
+        <button style={styles.button} onClick={() => navigate("/")}>
           Back to Shop
         </button>
       </div>

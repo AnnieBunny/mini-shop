@@ -13,7 +13,7 @@ function SuccessPaymentPage() {
           Thank you for your order. Your payment has been processed successfully.
         </p>
 
-        <button style={styles.button} onClick={() => navigate("/success")}>
+        <button style={styles.button} onClick={() => navigate("/")}>
           Back to Shop
         </button>
       </div>
