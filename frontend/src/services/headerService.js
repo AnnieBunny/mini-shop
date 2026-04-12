@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.GO_APP_API_URL;
 
 export const createCheckoutSession = async (cart,token) => {
   const res = await fetch(`${API_URL}/checkout`, {

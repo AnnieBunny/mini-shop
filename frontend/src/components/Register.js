@@ -6,7 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 function Register() {
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.GO_APP_API_URL;
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
